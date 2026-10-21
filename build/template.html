@@ -1,0 +1,305 @@
+<title>__TITLE__</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: navy masthead band with scope picker; white working surface below, one column of
+   sections (KPIs → pacing → partisan → counties/precincts), each section a flat panel, no card stacks. */
+:root{
+  --bg:#FFFFFF; --surface:#F6F8FA; --surface2:#EDF1F4; --line:#D6DEE4; --line2:#E6EBEF;
+  --fg:#013047; --fg2:#3F5A68; --muted:#6F8593;
+  --navy:#013047; --navy2:#001E2E; --blue:#8FCAE5; --gold:#FDB614; --slate:#415863; --logoblue:#6BB2E2;
+  --rep:#C0392B; --dem:#2E6FB7; --oth:#B07A10;
+  --y26:#1E6FA3; --y24:#B07A10; --y22:#8C5A9C;
+  --pos:#1F7A4D; --neg:#B23A2E;
+  --head-fg:#FFFFFF; --head-fg2:#8FCAE5;
+  --font:'Barlow',Arial,Helvetica,sans-serif; --cond:'Barlow Condensed','Barlow',Arial,sans-serif;
+  --radius:4px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#001E2E; --surface:#042A3E; --surface2:#0A3449; --line:#1E4A61; --line2:#133D52;
+  --fg:#F2F6F8; --fg2:#B9CFDB; --muted:#86A6B6;
+  --rep:#D9534F; --dem:#4A90D9; --oth:#C27E12;
+  --y26:#4A90D9; --y24:#C27E12; --y22:#A77FC8;
+  --pos:#4FBF7F; --neg:#E0665A;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#001E2E; --surface:#042A3E; --surface2:#0A3449; --line:#1E4A61; --line2:#133D52;
+  --fg:#F2F6F8; --fg2:#B9CFDB; --muted:#86A6B6;
+  --rep:#D9534F; --dem:#4A90D9; --oth:#C27E12;
+  --y26:#4A90D9; --y24:#C27E12; --y22:#A77FC8;
+  --pos:#4FBF7F; --neg:#E0665A;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.45;margin:0;-webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--navy)}
+h1,h2,h3{margin:0;text-wrap:balance;line-height:1.15}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+a{color:inherit}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* Masthead */
+.mast{background:var(--navy);color:var(--head-fg);padding-block:18px 22px}
+.mast .wrap{display:flex;flex-wrap:wrap;gap:16px 28px;align-items:flex-end;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:14px}
+.brand svg{height:34px;width:auto;display:block}
+.brand .eyebrow{font-family:var(--cond);font-weight:600;letter-spacing:.14em;text-transform:uppercase;font-size:12px;color:var(--head-fg2)}
+.mast h1{font-family:var(--cond);font-weight:700;font-size:clamp(28px,4.5vw,42px);letter-spacing:-.01em;margin-top:2px}
+.mast .sub{color:var(--head-fg2);font-size:14px;margin-top:4px}
+.scope{display:flex;flex-direction:column;gap:6px;min-width:0}
+.scope label{font-family:var(--cond);font-weight:600;letter-spacing:.14em;text-transform:uppercase;font-size:12px;color:var(--head-fg2)}
+.scope select{font:inherit;font-weight:600;font-size:16px;color:var(--navy);background:#fff;border:0;border-radius:var(--radius);padding:9px 36px 9px 12px;min-width:260px;max-width:100%;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%23013047' stroke-width='2'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.mastseg{border-color:rgba(255,255,255,.3)}
+.mastseg button{background:rgba(255,255,255,.08);color:#fff}
+.mastseg button[aria-pressed="true"]{background:#fff;color:var(--navy)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);color:#fff;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600;letter-spacing:.02em}
+
+/* Sections */
+main{padding-block:22px 40px;display:grid;gap:34px}
+main>section{min-width:0}
+.kpi .d span{overflow-wrap:anywhere}
+section>header{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:baseline;justify-content:space-between;margin-bottom:12px}
+section h2{font-family:var(--cond);font-weight:700;font-size:24px;letter-spacing:.005em}
+section h2 small{font-family:var(--font);font-weight:500;font-size:14px;color:var(--muted);margin-left:8px;letter-spacing:0}
+.note{color:var(--muted);font-size:13px;max-width:70ch}
+.rule{height:3px;background:var(--gold);width:48px;margin-bottom:12px;border-radius:2px}
+
+/* KPI tiles */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+@media (max-width:980px){.kpis{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:420px){.kpis{grid-template-columns:1fr}}
+.kpi{background:var(--surface);padding:14px 16px 12px;min-width:0;display:flex;flex-direction:column;gap:4px}
+.kpi .l{font-family:var(--cond);font-weight:600;letter-spacing:.1em;text-transform:uppercase;font-size:12px;color:var(--muted)}
+.kpi .v{font-family:var(--cond);font-weight:700;font-size:34px;line-height:1;letter-spacing:-.01em}
+.kpi .v small{font-size:16px;font-weight:600;color:var(--fg2);margin-left:4px;letter-spacing:0}
+.kpi .d{font-size:13px;color:var(--fg2);display:flex;flex-wrap:wrap;gap:4px 10px}
+.kpi .d b{font-weight:700}
+.up{color:var(--pos)} .down{color:var(--neg)}
+.party-bar{display:flex;height:14px;border-radius:3px;overflow:hidden;gap:2px;background:var(--bg);margin-top:4px}
+.party-bar span{display:block;height:100%}
+.pr{background:var(--rep)} .pd{background:var(--dem)} .po{background:var(--oth)}
+
+/* Panels & charts */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px 10px;min-width:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:14px}
+.ptitle{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+.ptitle h3{font-weight:700;font-size:16px}
+.ptitle .sub{color:var(--muted);font-size:13px}
+.toggles{display:flex;flex-wrap:wrap;gap:6px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.seg button{padding:5px 11px;font-size:13px;font-weight:600;color:var(--fg2);background:var(--bg)}
+.seg button[aria-pressed="true"]{background:var(--navy);color:#fff}
+:root[data-theme="dark"] .seg button[aria-pressed="true"]{background:var(--blue);color:var(--navy2)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .seg button[aria-pressed="true"]{background:var(--blue);color:var(--navy2)}}
+.chart{position:relative;width:100%}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart .ax{fill:var(--muted);font-size:11px;font-family:var(--font)}
+.chart .grid line{stroke:var(--line2);stroke-width:1}
+.chart .axis{stroke:var(--line)}
+.chart .lbl{font-size:12px;font-weight:600;fill:var(--fg2)}
+.tip{position:absolute;pointer-events:none;background:var(--navy);color:#fff;font-size:12px;line-height:1.35;padding:7px 9px;border-radius:var(--radius);box-shadow:0 2px 8px rgba(0,0,0,.25);white-space:nowrap;z-index:5;display:none}
+.tip b{font-weight:700}
+.tip .row{display:flex;gap:10px;justify-content:space-between}
+.tip i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:0}
+.legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:13px;color:var(--fg2);margin-top:6px}
+.legend span i{display:inline-block;width:14px;height:3px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.legend span i.sq{height:10px;width:10px}
+.legend span i.dash{background:repeating-linear-gradient(90deg,currentColor 0 4px,transparent 4px 7px)}
+
+/* Share bars */
+.shares{display:grid;gap:8px}
+.share{display:grid;grid-template-columns:150px 1fr 76px;gap:10px;align-items:center;font-size:13px}
+.share .lab{font-weight:600;color:var(--fg2)}
+.share .lab small{display:block;font-weight:500;color:var(--muted);font-size:11px}
+.share .bar{display:flex;height:22px;gap:2px;border-radius:3px;overflow:hidden}
+.share .bar span{display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;min-width:0;overflow:hidden;white-space:nowrap}
+.share .net{text-align:right;font-weight:700}
+@media (max-width:520px){.share{grid-template-columns:110px 1fr 64px}}
+
+/* Map */
+.mapgrid{display:grid;grid-template-columns:minmax(0,3fr) minmax(260px,2fr);gap:14px;align-items:start}
+@media (max-width:760px){.mapgrid{grid-template-columns:1fr}}
+.mappanel{padding:10px}
+.mappanel svg{display:block;width:100%;height:auto;max-height:640px;margin:0 auto}
+.county{stroke:var(--bg);stroke-width:1;cursor:pointer;transition:opacity .12s}
+.county:hover{opacity:.78}
+.county.sel{stroke:var(--gold);stroke-width:3;paint-order:stroke}
+.prec{stroke:var(--bg);stroke-width:.7;cursor:pointer}
+.prec:hover{stroke:var(--fg);stroke-width:1.5}
+.prec.sel{stroke:var(--gold);stroke-width:2.5;paint-order:stroke}
+.prec.none{fill:var(--line2);cursor:default}
+#pmap svg{max-height:720px}
+.county-label{font-size:9px;font-weight:600;fill:var(--fg);pointer-events:none;text-anchor:middle;paint-order:stroke;stroke:var(--bg);stroke-width:2.5px;stroke-linejoin:round}
+.maplegend{display:grid;gap:4px;margin:8px 0 14px;font-size:12px;color:var(--fg2)}
+.maplegend .ramp{height:12px;border-radius:3px;background:linear-gradient(90deg,var(--l0),var(--l1),var(--l2))}
+.maplegend .ramp.seq{background:linear-gradient(90deg,var(--l0),var(--l2))}
+.maplegend .ends{display:flex;justify-content:space-between}
+.mapinfo{font-size:14px}
+.mapinfo .big{font-family:var(--cond);font-weight:700;font-size:22px;margin:2px 0 6px}
+.mapinfo .big small{font-family:var(--font);font-weight:500;font-size:13px;color:var(--muted);margin-left:6px}
+.mapinfo dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0}
+.mapinfo dt{color:var(--muted)} .mapinfo dd{margin:0;font-weight:600;text-align:right}
+.mapinfo .open{display:inline-block;margin-top:12px;padding:7px 12px;border-radius:var(--radius);background:var(--navy);color:#fff;font-weight:600;font-size:13px}
+:root[data-theme="dark"] .mapinfo .open{background:var(--blue);color:var(--navy2)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .mapinfo .open{background:var(--blue);color:var(--navy2)}}
+
+
+/* Heat table */
+.heatwrap{border:0;background:none}
+table.heat{min-width:640px;border-collapse:separate;border-spacing:3px}
+table.heat th,table.heat td{border:0;white-space:normal}
+table.heat thead th{position:static;background:none;cursor:default;text-align:center;padding:4px 6px}
+table.heat thead th:first-child{text-align:left}
+table.heat tbody th{text-align:left;font-weight:700;color:var(--fg);padding:6px 10px;white-space:nowrap}
+table.heat tbody th small{display:block;font-weight:500;color:var(--muted);font-size:11px}
+table.heat td{border-radius:4px;padding:8px 10px;text-align:center;vertical-align:middle;min-width:92px}
+table.heat td .v{font-family:var(--cond);font-weight:700;font-size:22px;line-height:1;display:block}
+table.heat td .c{display:block;font-size:11.5px;color:var(--fg2);margin-top:3px}
+table.heat td .d{display:inline-block;margin-top:4px;font-size:11.5px;font-weight:700;padding:1px 6px;border-radius:999px;background:var(--bg);color:var(--fg)}
+table.heat tr.tot td,table.heat td.tot{outline:1px solid var(--line)}
+table.heat td.dark .c{color:inherit}
+
+/* Tables */
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13px;min-width:720px}
+th,td{padding:6px 8px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line2)}
+th:first-child,td:first-child{text-align:left}
+thead th{position:sticky;top:0;background:var(--surface2);color:var(--fg2);font-family:var(--cond);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:12px;cursor:pointer;user-select:none;z-index:1}
+thead th:hover{color:var(--fg)}
+thead th[aria-sort="descending"]::after{content:" ▾"} thead th[aria-sort="ascending"]::after{content:" ▴"}
+tbody tr:hover{background:var(--surface2)}
+tbody tr.link td:first-child{color:var(--y26);font-weight:600;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px;cursor:pointer}
+tfoot td{font-weight:700;background:var(--surface2);border-top:2px solid var(--line)}
+.netcell{display:inline-grid;grid-template-columns:52px 60px;align-items:center;gap:6px}
+.netcell .bar{height:10px;position:relative;background:var(--line2);border-radius:2px;overflow:hidden}
+.netcell .bar span{position:absolute;top:0;bottom:0}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:10px}
+.tools input{font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:var(--radius);background:var(--bg);color:var(--fg);min-width:220px}
+.tools .count{color:var(--muted);font-size:13px}
+.hint{color:var(--muted);font-size:12px;margin-top:8px}
+
+footer.meth{background:var(--surface);border-top:1px solid var(--line);padding-block:26px 40px;color:var(--fg2);font-size:14px}
+footer.meth h2{font-family:var(--cond);font-size:20px;color:var(--fg);margin-bottom:10px}
+footer.meth p{margin:0 0 10px;max-width:78ch}
+footer.meth .cs{display:flex;align-items:center;gap:10px;margin-top:18px;font-size:13px;color:var(--muted)}
+footer.meth .cs svg{height:22px;width:auto}
+@media (prefers-reduced-motion:no-preference){.seg button,.kpi{transition:background .15s,color .15s}}
+</style>
+
+<header class="mast">
+  <div class="wrap">
+    <div>
+      <div class="brand">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 300" role="img" aria-label="ColdSpark">
+          <path fill="#FFFFFF" stroke="#FFFFFF" stroke-width="6" stroke-linejoin="round" d="M21,227 L13,211 L7,194 L2,177 L0,159 L0,141 L3,123 L7,105 L13,88 L22,72 L32,57 L44,44 L58,32 L73,22 L89,13 L106,7 L123,2 L141,0 L159,0 L177,2 L195,7 L212,13 L228,22 L243,32 L256,44 L268,57 L278,72 L287,88 L293,105 L298,123 L300,141 L300,159 L298,177 L293,194 L287,211 L278,227 L268,242 L256,256 L243,268 L228,278 L212,287 L195,293 L177,297 L159,300 L141,300 L123,298 L106,293 L89,287 L73,279 L78,270 L94,276 L110,281 L126,283 L142,284 L158,282 L174,279 L189,275 L204,269 L218,262 L231,253 L243,242 L253,231 L262,218 L270,204 L275,189 L279,173 L281,158 L281,142 L279,126 L275,111 L269,96 L262,82 L253,69 L243,57 L231,47 L218,38 L204,31 L189,25 L174,21 L158,19 L142,19 L127,21 L111,25 L96,30 L82,38 L69,47 L58,57 L47,69 L38,82 L31,96 L25,111 L21,126 L18,142 L16,158 L17,174 L19,190 L24,206 L30,222Z"/>
+          <path fill="#FFFFFF" d="M248,150 L194,168 L219,219 L168,194 L150,248 L132,194 L50,250 L106,168 L52,150 L106,132 L81,81 L132,106 L150,52 L168,106 L219,81 L194,132Z"/>
+          <text x="330" y="214" font-family="Barlow, Arial, Helvetica, sans-serif" font-weight="700" font-size="170" letter-spacing="-4" fill="#FFFFFF">coldspark</text>
+        </svg>
+        <span class="eyebrow">Early Vote Tracker</span>
+      </div>
+      <h1 id="title">__TITLE__</h1>
+      <div class="sub" id="subtitle"></div>
+      <div class="chips" id="chips" style="margin-top:10px"></div>
+    </div>
+    <div class="scope">
+      <label for="scope">View</label>
+      <select id="scope"></select>
+      <label for="cmp24" style="margin-top:8px">Compare against</label>
+      <div class="seg mastseg" id="cmp24" role="group" aria-label="Comparison years"></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="s-kpi" aria-label="Headline numbers">
+    <div class="kpis" id="kpis"></div>
+  </section>
+
+  <section id="s-pace">
+    <header><div><div class="rule"></div><h2 id="pace-h2">Pacing against 2024 and 2022 <small>cumulative, by days before Election Day</small></h2></div>
+      <div class="toggles">
+        <div class="seg" id="pace-metric" role="group" aria-label="Measure"></div>
+        <div class="seg" id="pace-party" role="group" aria-label="Party"></div>
+      </div>
+    </header>
+    <div class="grid2">
+      <div class="panel"><div class="ptitle"><h3 id="pace-title">Cumulative early votes</h3><span class="sub">Hover for the year-by-year comparison</span></div><div class="chart" id="pace-chart"></div><div class="legend" id="pace-legend"></div></div>
+      <div class="panel"><div class="ptitle"><h3 id="daily-title">Each day in 2026</h3><span class="sub">Mail returned and in-person, by party</span></div><div class="chart" id="daily-chart"></div><div class="legend" id="daily-legend"></div></div>
+    </div>
+  </section>
+
+  <section id="s-party">
+    <header><div><div class="rule"></div><h2>Partisan split <small>__PARTY_LABEL__ from the __STATE__ voter file</small></h2></div></header>
+    <div class="grid2">
+      <div class="panel"><div class="ptitle"><h3>Who has voted so far</h3><span class="sub">Share of early votes cast (mail returned + in person)</span></div><div class="shares" id="shares"></div><div class="hint">“Same point” = the same number of days before Election Day as the latest 2026 data. __OTHER_NOTE__</div></div>
+      <div class="panel"><div class="ptitle"><h3>Republican minus Democratic share</h3><span class="sub">Net points, cumulative early votes</span></div><div class="chart" id="net-chart"></div><div class="legend" id="net-legend"></div></div>
+      <div class="panel"><div class="ptitle"><h3>Daily party mix, 2026</h3><span class="sub">Share of each day’s early votes</span></div><div class="chart" id="mix-chart"></div><div class="legend" id="mix-legend"></div></div>
+      <div class="panel"><div class="ptitle"><h3>Turnout within each party</h3><span class="sub">Early votes as a share of registered voters, 2026</span></div><div class="chart" id="turnout-chart"></div><div class="hint" id="turnout-hint"></div></div>
+    </div>
+  </section>
+
+  <section id="s-heat">
+    <header><div><div class="rule"></div><h2>Party × vote history <small>who has turned out, 2026 against 2022</small></h2></div>
+      <div class="toggles">
+        <div class="seg" id="heat-measure" role="group" aria-label="Measure"></div>
+        <div class="seg" id="heat-compare" role="group" aria-label="Comparison"></div>
+      </div>
+    </header>
+    <div class="panel"><div class="ptitle"><h3 id="heat-title"></h3><span class="sub" id="heat-sub"></span></div>
+      <div class="tablewrap heatwrap"><table class="heat" id="heat"></table></div>
+      <div class="legend" id="heat-legend"></div>
+      <div class="hint" id="heat-hint"></div></div>
+  </section>
+
+  <section id="s-map">
+    <header><div><div class="rule"></div><h2>County map <small>click a county to open its precincts</small></h2></div>
+      <div class="toggles"><div class="seg" id="map-metric" role="group" aria-label="Map measure"></div></div>
+    </header>
+    <div class="mapgrid">
+      <div class="panel mappanel"><div class="chart" id="map"></div></div>
+      <div class="panel mapside">
+        <div class="ptitle"><h3 id="map-title"></h3></div>
+        <div class="maplegend" id="map-legend"></div>
+        <div class="mapinfo" id="map-info"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="s-pmap" hidden>
+    <header><div><div class="rule"></div><h2 id="pmap-h2">Precinct map <small>click a precinct to find it in the table</small></h2></div>
+      <div class="toggles"><div class="seg" id="pmap-metric" role="group" aria-label="Precinct map measure"></div></div>
+    </header>
+    <div class="mapgrid">
+      <div class="panel mappanel"><div class="chart" id="pmap"><p class="hint">Loading precinct boundaries…</p></div></div>
+      <div class="panel mapside">
+        <div class="ptitle"><h3 id="pmap-title"></h3></div>
+        <div class="maplegend" id="pmap-legend"></div>
+        <div class="mapinfo" id="pmap-info"></div>
+        <p class="hint" id="pmap-note"></p>
+      </div>
+    </div>
+  </section>
+
+  <section id="s-counties">
+    <header><div><div class="rule"></div><h2 id="tbl-title">Counties</h2></div><p class="note" id="tbl-note"></p></header>
+    <div class="tools" id="tbl-tools"></div>
+    <div class="tablewrap"><table id="tbl"><thead></thead><tbody></tbody><tfoot></tfoot></table></div>
+    <div class="hint" id="tbl-hint"></div>
+  </section>
+</main>
+
+<footer class="meth"><div class="wrap">
+  <h2>About the numbers</h2>
+  <div id="meth"></div>
+  <div class="cs">Built by ColdSpark · Pittsburgh, PA · <span id="built"></span></div>
+</div></footer>
+
+<script>
+const D = /*__DATA__*/;
+/*__JS__*/
+</script>
