@@ -251,6 +251,122 @@ footer.meth .cs svg{height:22px;width:auto}
     </div>
   </section>
 
+<style>
+/* Projection panel: gated behind an acknowledgment; dot plot of early vs projected share per modeled-party group */
+#s-proj [hidden]{display:none!important}
+#s-proj .gate{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:var(--radius);padding:18px 20px;display:grid;gap:12px;max-width:760px}
+#s-proj .gate h3{font-family:var(--cond);font-weight:700;font-size:20px}
+#s-proj .gate p{margin:0;color:var(--fg2);font-size:14px;max-width:68ch}
+#s-proj .ack{display:flex;gap:10px;align-items:flex-start;font-weight:600;font-size:14px;cursor:pointer}
+#s-proj .ack input{width:18px;height:18px;margin-top:1px;flex:0 0 auto;accent-color:var(--navy)}
+#s-proj .btn{justify-self:start;padding:8px 14px;border-radius:var(--radius);background:var(--navy);color:#fff;font-weight:700;font-size:14px}
+#s-proj .btn:disabled{opacity:.4;cursor:not-allowed}
+:root[data-theme="dark"] #s-proj .btn{background:var(--blue);color:var(--navy2)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) #s-proj .btn{background:var(--blue);color:var(--navy2)}}
+#s-proj .linkbtn{color:var(--muted);font-size:13px;text-decoration:underline;text-underline-offset:3px}
+#s-proj .warnchip{display:inline-block;background:var(--gold);color:var(--navy);font-family:var(--cond);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:11px;padding:2px 8px;border-radius:999px}
+#s-proj .gaps{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;margin-bottom:14px}
+#s-proj .gaps>div{background:var(--surface);padding:12px 16px;display:grid;gap:4px;min-width:0}
+#s-proj .gaps .l{font-family:var(--cond);font-weight:600;letter-spacing:.1em;text-transform:uppercase;font-size:12px;color:var(--muted)}
+#s-proj .gaps .v{font-family:var(--cond);font-weight:700;font-size:32px;line-height:1}
+#s-proj .gaps .d{font-size:13px;color:var(--fg2)}
+#s-proj .dots{display:grid;gap:10px}
+#s-proj .drow{display:grid;grid-template-columns:120px minmax(0,1fr) 128px;gap:12px;align-items:center;font-size:13px}
+#s-proj .drow .lab{font-weight:700}
+#s-proj .drow .vals{text-align:right;color:var(--fg2)}
+#s-proj .drow .vals b{color:var(--fg)}
+#s-proj .track{position:relative;height:26px;border-radius:3px;background:linear-gradient(90deg,var(--line2) 1px,transparent 1px) 0 0/25% 100%,var(--bg)}
+#s-proj .range{position:absolute;top:9px;height:8px;border-radius:4px;opacity:.35}
+#s-proj .mk{position:absolute;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;border:2px solid currentColor}
+#s-proj .mk.early{background:var(--bg)}
+#s-proj .mk.proj{background:currentColor}
+#s-proj .axisrow{display:grid;grid-template-columns:120px minmax(0,1fr) 128px;gap:12px;font-size:11px;color:var(--muted)}
+#s-proj .axisrow .ticks{position:relative;height:14px}
+#s-proj .axisrow .ticks span{position:absolute;transform:translateX(-50%)}
+#s-proj .axisrow .ticks span:first-child{transform:none}
+#s-proj .axisrow .ticks span:last-child{transform:translateX(-100%)}
+#s-proj ul.meth{margin:0;padding-left:18px;display:grid;gap:6px;color:var(--fg2);font-size:13.5px;max-width:76ch}
+#s-proj .scopenote{background:var(--surface2);border-radius:var(--radius);padding:8px 12px;font-size:13px;color:var(--fg2);margin-bottom:12px}
+@media (max-width:560px){#s-proj .drow,#s-proj .axisrow{grid-template-columns:76px minmax(0,1fr)}#s-proj .drow .vals{grid-column:2;text-align:left}#s-proj .axisrow>span:last-child{display:none}}
+</style>
+<section id="s-proj">
+  <header><div><div class="rule"></div><h2>Projected final electorate <small>early vote plus who is likely still to vote</small></h2></div><span class="warnchip">Experimental</span></header>
+  <div class="gate" id="proj-gate">
+    <h3>Projections are hidden</h3>
+    <p>This panel estimates what the full Michigan electorate will look like once Election Day votes are in, using the early vote so far and each voter's past behavior. Projections built from early vote data have missed by several points in past cycles. Read them as a range, not a forecast.</p>
+    <label class="ack" for="proj-ack"><input type="checkbox" id="proj-ack"> I acknowledge modeling off of EV is insane but I want to look anyways</label>
+    <button class="btn" id="proj-show" type="button" disabled>Show projections</button>
+  </div>
+  <div id="proj-body" hidden>
+    <div class="scopenote" id="proj-scope" hidden>This projection is statewide. Picking a county in the View menu doesn't change it.</div>
+    <div class="gaps" id="proj-gaps"></div>
+    <div class="grid2">
+      <div class="panel">
+        <div class="ptitle"><h3>Share of the electorate by modeled party</h3><span class="sub" id="proj-sub"></span></div>
+        <div class="dots" id="proj-dots"></div>
+        <div class="legend"><span><i class="sq" style="background:var(--bg);border:2px solid var(--fg2);border-radius:50%"></i>Early vote so far</span><span><i class="sq" style="background:var(--fg2);border-radius:50%"></i>Projected final</span><span><i style="background:var(--fg2);opacity:.35;height:8px;width:22px;border-radius:4px"></i>Projection range</span></div>
+      </div>
+      <div class="panel">
+        <div class="ptitle"><h3>How this is built, and how it has done</h3></div>
+        <ul class="meth" id="proj-meth"></ul>
+      </div>
+    </div>
+    <p style="margin:12px 0 0"><button class="linkbtn" id="proj-hide" type="button">Hide projections</button></p>
+  </div>
+<script>
+(function(){
+const P = {"state":"MI","asof":"2026-10-22","dbe":12,"early_votes":984083,"groups":[{"k":"HardGOP","early":14.2,"proj":12.7,"lo":11.7,"hi":12.8},{"k":"SoftGOP","early":22.3,"proj":23.5,"lo":21.8,"hi":23.7},{"k":"Swing","early":22.2,"proj":34.1,"lo":33.6,"hi":38.5},{"k":"SoftDem","early":29.8,"proj":22.4,"lo":20.9,"hi":23.7},{"k":"HardDem","early":11.5,"proj":7.3,"lo":7.0,"hi":8.2}],"early_net":-4.8,"proj_net":6.5,"net_lo":2.2,"net_hi":7.7,"backtest":[{"dir":"22->24","model":1.5,"naive":-6.7},{"dir":"24->22","model":-4.7,"naive":-16.4}],"early_prev":{"2022":-7.8,"2024":-2.2}};
+if(!P){document.getElementById('s-proj').hidden=true;return;}
+const NAMES={HardGOP:'Hard GOP',SoftGOP:'Soft GOP',Swing:'Swing',SoftDem:'Soft Dem',HardDem:'Hard Dem'};
+const COL={HardGOP:'var(--rep)',SoftGOP:'color-mix(in srgb, var(--rep) 55%, var(--bg))',Swing:'var(--oth)',SoftDem:'color-mix(in srgb, var(--dem) 55%, var(--bg))',HardDem:'var(--dem)'};
+const MAX=Math.max(40,Math.ceil(Math.max(...P.groups.flatMap(g=>[g.early,g.hi]))/10)*10), pos=v=>Math.max(0,Math.min(100,100*v/MAX));
+const fmtNet=v=>(v>=0?'GOP +':'Dem +')+Math.abs(v).toFixed(1);
+const fmt=n=>n.toLocaleString('en-US');
+const KEY='cs_proj_ack';
+const gate=document.getElementById('proj-gate'), body=document.getElementById('proj-body'), ack=document.getElementById('proj-ack'), show=document.getElementById('proj-show');
+function draw(){
+  const asof=new Date(P.asof+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  document.getElementById('proj-sub').textContent=`Data through ${asof}, ${P.dbe} days before Election Day`;
+  document.getElementById('proj-gaps').innerHTML=
+    `<div><span class="l">Early vote so far</span><span class="v num">${fmtNet(P.early_net)}</span><span class="d">GOP minus Dem share, ${fmt(P.early_votes)} votes matched to the voter file</span></div>`+
+    `<div><span class="l">Projected final electorate</span><span class="v num">${fmtNet(P.proj_net)}</span><span class="d">Range ${fmtNet(P.net_lo)} to ${fmtNet(P.net_hi)}</span></div>`+
+    `<div><span class="l">Expected shift by Election Day</span><span class="v num">${(P.proj_net-P.early_net>=0?'+':'')}${(P.proj_net-P.early_net).toFixed(1)}</span><span class="d">Points toward ${P.proj_net>=P.early_net?'GOP':'Dem'} as later voters arrive</span></div>`;
+  let h='';
+  P.groups.forEach(g=>{
+    h+=`<div class="drow"><span class="lab">${NAMES[g.k]}</span><div class="track" style="color:${COL[g.k]}" role="img" aria-label="${NAMES[g.k]}: ${g.early}% of early vote, projected ${g.proj}% of final (range ${g.lo} to ${g.hi})">`+
+       `<span class="range" style="left:${pos(g.lo)}%;width:${pos(g.hi)-pos(g.lo)}%;background:currentColor"></span>`+
+       `<span class="mk early" style="left:${pos(g.early)}%"></span><span class="mk proj" style="left:${pos(g.proj)}%"></span></div>`+
+       `<span class="vals num">${g.early.toFixed(1)}% → <b>${g.proj.toFixed(1)}%</b></span></div>`;
+  });
+  h+=`<div class="axisrow"><span></span><div class="ticks">${Array.from({length:MAX/10+1},(_,i)=>i*10).map(t=>`<span style="left:${pos(t)}%">${t}%</span>`).join('')}</div><span></span></div>`;
+  document.getElementById('proj-dots').innerHTML=h;
+  const bt=P.backtest.map(b=>{const tr=b.dir.startsWith('22')?['2022','2024']:['2024','2022'];return `trained on ${tr[0]} and tested on ${tr[1]}, the model missed the final gap by ${Math.abs(b.model).toFixed(1)} points; the raw early vote missed by ${Math.abs(b.naive).toFixed(1)}`;});
+  document.getElementById('proj-meth').innerHTML=[
+    `Everyone who has not voted yet gets a chance of still voting, from how similar Michigan voters behaved in 2022: same modeled party, same habit of voting early or on Election Day, same number of recent generals, same primary history. Each group's chance is scaled up or down by how fast that group is voting this year compared with 2022.`,
+    `Party groups are ColdSpark's five-way modeled party from the October 2026 voter file. They are not the three-way split shown elsewhere on this page.`,
+    `The range covers training on 2022 or on 2024 and putting more or less weight on this year's turnout pace.`,
+    `Backtest at the same point before Election Day: ${bt.join('; ')}.`,
+    `Total turnout is not projected. Turnout estimates missed by 5% to 16% in past-cycle tests across nine states.`,
+    (()=>{const ep=P.early_prev;if(!ep)return `The 2026 early vote is more Democratic than in 2022 or 2024 at this point, so the projection leans on Republicans voting later than in past cycles. If they have stopped voting late, the final electorate will look more like the early vote.`;
+      const d22=P.early_net<ep['2022'],d24=P.early_net<ep['2024'],f=v=>(v>=0?'GOP +':'Dem +')+Math.abs(v).toFixed(1);
+      const cmp=`(${f(P.early_net)} now; ${f(ep['2022'])} in 2022 and ${f(ep['2024'])} in 2024 at the same point, among votes matched to the voter file)`;
+      if(d22&&d24)return `The 2026 early vote is more Democratic than in 2022 or 2024 at this point ${cmp}, so the projection leans on Republicans voting later than in past cycles. If they have stopped voting late, the final electorate will look more like the early vote.`;
+      if(!d22&&!d24)return `The 2026 early vote is more Republican than in 2022 or 2024 at this point ${cmp}, so the projection leans on Democrats voting later than in past cycles. If they have stopped voting late, the final electorate will look more like the early vote.`;
+      return `The 2026 early vote is more Democratic than in ${d22?'2022':'2024'} but more Republican than in ${d22?'2024':'2022'} at this point ${cmp}, so the projection sits between what those two cycles' timing would imply.`;})()
+  ].concat(P.state==='MI'?[`Michigan's feed carries mail ballots only. In-person early votes (from Oct 24, 2026) are not in it, so here they count as votes still to come, as they did in the 2022 and 2024 data the model learned from.`]:[]).map(t=>`<li>${t}</li>`).join('');
+}
+function setScopeNote(){const s=document.getElementById('scope');document.getElementById('proj-scope').hidden=!s||s.value==='STATE';}
+function reveal(remember){gate.hidden=true;body.hidden=false;draw();setScopeNote();if(remember){try{sessionStorage.setItem(KEY,'1');}catch(e){}}}
+ack.addEventListener('change',()=>{show.disabled=!ack.checked;});
+show.addEventListener('click',()=>{if(ack.checked)reveal(true);});
+document.getElementById('proj-hide').addEventListener('click',()=>{body.hidden=true;gate.hidden=false;ack.checked=false;show.disabled=true;try{sessionStorage.removeItem(KEY);}catch(e){}});
+document.addEventListener('change',e=>{if(e.target&&e.target.id==='scope')setScopeNote();});
+window.addEventListener('hashchange',setScopeNote);
+let ok=false;try{ok=sessionStorage.getItem(KEY)==='1';}catch(e){}
+if(ok)reveal(false);
+})();
+</script>
+</section>
   <section id="s-heat">
     <header><div><div class="rule"></div><h2>Party × vote history <small>who has turned out, 2026 against 2022</small></h2></div>
       <div class="toggles">

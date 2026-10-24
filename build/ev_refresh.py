@@ -15,6 +15,9 @@ What it does, for the state named in ev_config.json:
      (template + app.js) is whatever was last committed. Static parts (county outlines, state notes) are kept.
   5. Refuses to publish on implausible results (see sanity checks) — the workflow then fails and GitHub
      emails the repo owner; the live page stays on the last good data.
+  6. Optional (ev_config "projection": true): recomputes the gated "Projected final electorate" panel with the kit's
+     model (build/make_proj.py, Query M x3 at the page's as-of day) and replaces `const P = ...;` in the page. If that
+     step fails, the panel is hidden (P = null) rather than left stale, and the rest of the refresh still publishes.
 
 Usage: python3 ev_refresh.py --config build/ev_config.json --page index.html [--fingerprint build/feed_fingerprint.txt] [--force]
 Exit codes: 0 = page updated or nothing new; 1 = error / sanity check failed (page untouched).
@@ -30,6 +33,60 @@ PARTY = ("CASE WHEN {v}.PartyRollUp IN ('Republican','Modeled Republican') THEN 
 NINE = ("COUNTIF(m='req' AND party='R') reqR, COUNTIF(m='req' AND party='D') reqD, COUNTIF(m='req' AND party='O') reqO, "
         "COUNTIF(m='ret' AND party='R') retR, COUNTIF(m='ret' AND party='D') retD, COUNTIF(m='ret' AND party='O') retO, "
         "COUNTIF(m='eip' AND party='R') eipR, COUNTIF(m='eip' AND party='D') eipD, COUNTIF(m='eip' AND party='O') eipO")
+
+
+def q_proj(cfg, year, asof):
+    """Query M of the kits' PROJECTION.md: projection cells (ModeledParty x habit x freq x primary) for one year."""
+    st = cfg['state']
+    if year == '2022':
+        ab, vf, ed = 'abev_2022', 'voters', ED['2022']
+        g, pr, fin, reg, having = ('VH20G', 'VH18G', 'VH16G'), 'COALESCE(VH22P,VH20P)', 'VH22G IS NOT NULL OR a.dbe IS NOT NULL', ' AND (f.RegistrationYear IS NULL OR f.RegistrationYear<=2022)', 'BETWEEN 0 AND 60'
+    elif year == '2024':
+        ab, vf, ed = 'abev_2024', 'voterfile_2024', ED['2024']
+        g, pr, fin, reg, having = ('VH22G', 'VH20G', 'VH18G'), 'COALESCE(VH24P,VH22P)', 'VH24G IS NOT NULL OR a.dbe IS NOT NULL', '', 'BETWEEN 0 AND 60'
+    else:
+        ab, vf, ed = 'abev_2026', 'voters', ED['2026']
+        g, pr, fin, reg, having = ('VH24G', 'VH22G', 'VH20G'), 'COALESCE(VH26P,VH24P)', 'FALSE', '', f'BETWEEN {asof} AND 60'
+    return f"""WITH a AS (
+  SELECT DT_Regid, MAX(DATE_DIFF(DATE '{ed}', LEAST(IFNULL(EarlyVoted, DATE '2099-01-01'), IFNULL(IF(Rejected=0, ReturnDate, NULL), DATE '2099-01-01')), DAY)) dbe
+  FROM `{DS}.{ab}`
+  WHERE State='{st}' AND (EarlyVoted IS NOT NULL OR (ReturnDate IS NOT NULL AND Rejected=0)) AND DT_Regid<>''
+  GROUP BY 1 HAVING dbe {having}
+), v AS (
+  SELECT f.State st, f.ModeledParty party,
+   CASE WHEN {g[0]} IN ('2','7') THEN 'E' WHEN {g[0]}='1' THEN 'D' WHEN {g[1]} IN ('2','7') THEN 'E' WHEN {g[1]}='1' THEN 'D' ELSE 'N' END habit,
+   IF({g[0]} IS NOT NULL,1,0)+IF({g[1]} IS NOT NULL,1,0)+IF({g[2]} IS NOT NULL,1,0) freq,
+   CASE WHEN {pr} IN ('3','4','8') THEN 'R' WHEN {pr} IN ('5','6','9') THEN 'D' ELSE 'N' END prim,
+   {fin} fin, a.dbe
+  FROM `{DS}.{vf}` f LEFT JOIN a USING (DT_Regid)
+  WHERE f.State='{st}'{reg})
+SELECT st, party, habit, freq, prim, COUNT(*) n, COUNTIF(fin) fin, COUNTIF(dbe>={asof}) e{asof}
+FROM v GROUP BY 1,2,3,4,5"""
+
+
+def compute_projection(bq, cfg, asof):
+    """Run Query M for 2022/2024/2026 and the kit's model; returns the proj dict the page's panel reads."""
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import make_proj
+    cols = ['st', 'party', 'habit', 'freq', 'prim', 'n', 'fin', f'e{asof}']
+    cells = {y: make_proj.frame(cols, bq.rows(q_proj(cfg, y, asof), f'projection cells {y}'), cfg['state'])
+             for y in ('2022', '2024', '2026')}
+    res = make_proj.compute({'2022': cells['2022'], '2024': cells['2024']}, cells['2026'], cfg['state'], asof)
+    log(f"  projection as of d={asof}: early {res['early_net']:+.1f} -> projected {res['proj_net']:+.1f} "
+        f"({res['net_lo']:+.1f}..{res['net_hi']:+.1f}); {res['early_votes']:,} early votes")
+    return res
+
+
+def find_proj(html):
+    """Locate the projection object (`const P = {...}` or `null`) in the page; None if the page has no panel."""
+    marker = 'const P = '
+    if marker not in html:
+        return None
+    j = html.index(marker) + len(marker)
+    if html.startswith('null', j):
+        return j, j + 4, None
+    P, e = json.JSONDecoder().raw_decode(html, j)
+    return j, e, P
 
 
 def log(*a):
@@ -226,6 +283,8 @@ def dump_data(D):
 
 
 # ---------------------------------------------------------------- main
+PJ = None
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -243,6 +302,10 @@ def main():
     log(f"{cfg['state']}: page as of {old['asof']['date']} (built {old['built']}), {len(keep)} counties")
 
     if args.selftest:
+        global PJ
+        PJ = find_proj(html)
+        if PJ and PJ[2] is not None:
+            assert html[PJ[0]:PJ[1]] == dump_data(PJ[2]), 'projection object does not round-trip'
         selftest(old, alias, keep)
         return 0
 
@@ -278,6 +341,20 @@ def main():
         '2026': norm_heat(bq.rows(q_heat(cfg, '2026', asof_d), 'heat 2026'), ['hist', 'reg', 'ev_now', 'mail_now', 'eip_now', 'req_now'], alias, keep),
         '2022': norm_heat(bq.rows(q_heat(cfg, '2022', asof_d), 'heat 2022'), ['hist', 'reg', 'ev_now', 'mail_now', 'eip_now', 'req_now', 'ev_final', 'voted22'], alias, keep),
     }
+
+    proj_old = find_proj(html)
+    proj = proj_old[2] if proj_old else None
+    if cfg.get('projection'):
+        if not proj_old:
+            log('  projection: page has no projection panel (const P); skipping')
+        else:
+            try:
+                proj = compute_projection(bq, cfg, asof_d)
+                if proj['dbe'] != asof_d:
+                    raise ValueError(f"projection day {proj['dbe']} != page day {asof_d}")
+            except Exception as e:
+                log(f'::warning::projection step failed, panel hidden: {e}')
+                proj = None
 
     rows26 = sorted(daily['2026']['rows'])
     asof_date = datetime.date.fromisoformat(ED['2026']) - datetime.timedelta(days=asof_d)
@@ -320,12 +397,20 @@ def main():
         return 1
 
     same = all(D[k] == old[k] for k in ('asof', 'partial', 'meta', 'daily', 'county', 'precinct', 'heat'))
+    if proj_old and proj != proj_old[2]:
+        same = False
     if same and not args.force:
         log('data identical to the live page; not rewriting')
     else:
         D['built'] = built_stamp()
+        parts = [(i, end, dump_data(D))]
+        if proj_old:
+            parts.append((proj_old[0], proj_old[1], dump_data(proj) if proj else 'null'))
+        out = html
+        for a, b, txt in sorted(parts, reverse=True):  # replace from the end so earlier offsets stay valid
+            out = out[:a] + txt + out[b:]
         with open(args.page, 'w', encoding='utf-8') as f:
-            f.write(html[:i] + dump_data(D) + html[end:])
+            f.write(out)
         log(f"wrote {args.page}: as of {asof_date} (d={asof_d}); 2026 early votes {new_ev:,} (was {old_ev:,}); built {D['built']}")
         gh_out = os.environ.get('GITHUB_OUTPUT')
         if gh_out:
@@ -356,6 +441,7 @@ def selftest(old, alias, keep):
         h2 = norm_heat(rawh, old['heat'][y]['cols'], alias, keep)
         assert h2 == old['heat'][y], f'heat {y} mismatch'
     a = asof_of(old['daily']['2026'])
+    log('  projection panel: ' + ('none on this page' if not PJ else ('hidden (null)' if PJ[2] is None else f"as of d={PJ[2]['dbe']}")))
     assert a == old['asof']['d'], (a, old['asof'])
     log('selftest OK')
 

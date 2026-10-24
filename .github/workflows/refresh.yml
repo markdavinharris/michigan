@@ -34,7 +34,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install BigQuery client
-        run: pip install --quiet 'google-cloud-bigquery>=3.20,<4'
+        run: pip install --quiet 'google-cloud-bigquery>=3.20,<4' 'pandas>=2.0,<3'
 
       - name: Refresh data from BigQuery
         id: refresh
