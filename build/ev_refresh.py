@@ -202,6 +202,17 @@ def asof_of(rows26):
     return None
 
 
+def built_stamp():
+    """Build time in US Eastern, e.g. 'Oct 24, 2026 9:05 AM ET'."""
+    try:
+        from zoneinfo import ZoneInfo
+        now = datetime.datetime.now(ZoneInfo('America/New_York'))
+    except Exception:  # no tz database: fixed offset fallback (EDT until Nov 1, EST after)
+        utc = datetime.datetime.now(datetime.timezone.utc)
+        now = utc + datetime.timedelta(hours=-4 if utc < datetime.datetime(2026, 11, 1, 6, tzinfo=datetime.timezone.utc) else -5)
+    return now.strftime('%b ') + str(now.day) + now.strftime(', %Y ') + now.strftime('%I:%M %p').lstrip('0') + ' ET'
+
+
 def read_page(path):
     html = open(path, encoding='utf-8').read()
     marker = 'const D = '
@@ -221,7 +232,7 @@ def main():
     ap.add_argument('--config', required=True)
     ap.add_argument('--page', required=True)
     ap.add_argument('--fingerprint', default=None)
-    ap.add_argument('--force', action='store_true', help='rebuild even if the feed fingerprint has not changed')
+    ap.add_argument('--force', action='store_true', help='rebuild and rewrite the page even if the feed and data have not changed')
     ap.add_argument('--selftest', action='store_true', help='check the transforms against the current page, no BigQuery')
     args = ap.parse_args()
     cfg = json.load(open(args.config))
@@ -309,10 +320,10 @@ def main():
         return 1
 
     same = all(D[k] == old[k] for k in ('asof', 'partial', 'meta', 'daily', 'county', 'precinct', 'heat'))
-    if same:
+    if same and not args.force:
         log('data identical to the live page; not rewriting')
     else:
-        D['built'] = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
+        D['built'] = built_stamp()
         with open(args.page, 'w', encoding='utf-8') as f:
             f.write(html[:i] + dump_data(D) + html[end:])
         log(f"wrote {args.page}: as of {asof_date} (d={asof_d}); 2026 early votes {new_ev:,} (was {old_ev:,}); built {D['built']}")
