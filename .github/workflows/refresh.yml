@@ -1,0 +1,84 @@
+name: Refresh early-vote data
+
+# Rebuilds index.html from BigQuery and publishes it with GitHub Pages. No Claude session involved.
+# Runs hourly from ~7 AM to ~11 PM Eastern; a cheap feed check skips the run when nothing changed.
+# Needs one repository secret: GCP_SA_KEY (JSON key of a BigQuery read-only service account).
+on:
+  schedule:
+    - cron: '19 11-23 * * *'
+    - cron: '19 0-3 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Rebuild even if the feed has not changed'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install BigQuery client
+        run: pip install --quiet 'google-cloud-bigquery>=3.20,<4'
+
+      - name: Refresh data from BigQuery
+        id: refresh
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+        run: |
+          if [ -z "$GCP_SA_KEY" ]; then echo "::warning::Repository secret GCP_SA_KEY is not set yet; skipping"; exit 0; fi
+          printf '%s' "$GCP_SA_KEY" > "$RUNNER_TEMP/sa.json"
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
+          FORCE=""; if [ "${{ inputs.force }}" = "true" ]; then FORCE="--force"; fi
+          python build/ev_refresh.py --config build/ev_config.json --page index.html --fingerprint build/feed_fingerprint.txt $FORCE
+
+      - name: Commit and push
+        id: push
+        run: |
+          git config user.name "ColdSpark early-vote bot"
+          git config user.email "mark@coldspark.com"
+          git add index.html build/feed_fingerprint.txt
+          if git diff --cached --quiet; then echo "Nothing to commit"; exit 0; fi
+          if git diff --cached --quiet -- index.html; then MSG="Feed check"; else MSG="Data through ${{ steps.refresh.outputs.asof }}"; echo "page=true" >> "$GITHUB_OUTPUT"; fi
+          git commit -q -m "$MSG"
+          for i in 1 2 3 4 5; do
+            if git push -q origin HEAD:main; then exit 0; fi
+            echo "push rejected, rebasing and retrying ($i)"; sleep $((i*5))
+            git pull -q --rebase -X theirs origin main || { git rebase --abort; git reset -q --hard origin/main; echo "::error::could not rebase onto main"; exit 1; }
+          done
+          echo "::error::push failed after retries"; exit 1
+
+      - name: Ask GitHub Pages to rebuild
+        if: steps.push.outputs.page == 'true'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X POST "repos/${GITHUB_REPOSITORY}/pages/builds" --silent
+
+      - name: Confirm the live site updated
+        if: steps.push.outputs.page == 'true'
+        run: |
+          SITE="https://$(cat CNAME)/"
+          WANT=$(grep -o '"built":"[^"]*"' index.html | head -1)
+          for i in $(seq 1 20); do
+            sleep 30
+            GOT=$(curl -s "${SITE}?v=$(date +%s)" | grep -o '"built":"[^"]*"' | head -1)
+            if [ "$GOT" = "$WANT" ]; then echo "Live: $SITE $GOT"; exit 0; fi
+            echo "waiting for Pages ($i): live $GOT, want $WANT"
+          done
+          echo "::error::$SITE did not show $WANT after 10 minutes"; exit 1

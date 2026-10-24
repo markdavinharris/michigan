@@ -1,0 +1,9 @@
+{
+ "state": "MI",
+ "county_expr": "UPPER(v.CountyName)",
+ "alias": {
+  "ST. CLAIR": "ST CLAIR",
+  "ST. JOSEPH": "ST JOSEPH"
+ },
+ "_note": "Read by ev_refresh.py. county_expr is the SQL for the county of an ABEV row (a = ABEV row, v = voter-file row); alias maps feed/voter-file spellings to the county names used by the page map."
+}
