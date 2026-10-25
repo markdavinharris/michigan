@@ -15,6 +15,8 @@ What it does, for the state named in ev_config.json:
      (template + app.js) is whatever was last committed. Static parts (county outlines, state notes) are kept.
   5. Refuses to publish on implausible results (see sanity checks) — the workflow then fails and GitHub
      emails the repo owner; the live page stays on the last good data.
+  6b. If the page has the "Projection over time" chart (`const PH = ...;`), the day's projection is written into it too:
+     the row for the page's as-of day is replaced, earlier days are kept as they are.
   6. Optional (ev_config "projection": true): recomputes the gated "Projected final electorate" panel with the kit's
      model (build/make_proj.py, Query M x3 at the page's as-of day) and replaces `const P = ...;` in the page. If that
      step fails, the panel is hidden (P = null) rather than left stale, and the rest of the refresh still publishes.
@@ -87,6 +89,27 @@ def find_proj(html):
         return j, j + 4, None
     P, e = json.JSONDecoder().raw_decode(html, j)
     return j, e, P
+
+
+def find_projh(html):
+    """Locate the projection history (`const PH = {...}` or `null`) in the page; None if the page has no trend chart."""
+    marker = 'const PH = '
+    if marker not in html:
+        return None
+    j = html.index(marker) + len(marker)
+    if html.startswith('null', j):
+        return j, j + 4, None
+    H, e = json.JSONDecoder().raw_decode(html, j)
+    return j, e, H
+
+
+def upsert_history(H, proj):
+    """Return a copy of the trend history with the row for proj's as-of day replaced by proj (append-only otherwise)."""
+    H = dict(H or {'ev_open': None, 'rows': []})
+    row = {k: proj[k] for k in ('asof', 'early_net', 'proj_net', 'net_lo', 'net_hi', 'early_votes')}
+    row['source'] = 'live'
+    H['rows'] = sorted([r for r in H.get('rows', []) if r['asof'] != row['asof']] + [row], key=lambda r: r['asof'])
+    return H
 
 
 def log(*a):
@@ -306,6 +329,10 @@ def main():
         PJ = find_proj(html)
         if PJ and PJ[2] is not None:
             assert html[PJ[0]:PJ[1]] == dump_data(PJ[2]), 'projection object does not round-trip'
+        PHx = find_projh(html)
+        if PHx and PHx[2] is not None:
+            assert html[PHx[0]:PHx[1]] == dump_data(PHx[2]), 'projection history does not round-trip'
+        log('  projection history: ' + ('none on this page' if not PHx else ('empty (null)' if PHx[2] is None else f"{len(PHx[2]['rows'])} days, last {PHx[2]['rows'][-1]['asof'] if PHx[2]['rows'] else '-'}")))
         selftest(old, alias, keep)
         return 0
 
@@ -396,8 +423,14 @@ def main():
         log('SANITY CHECKS FAILED; page left unchanged:\n  - ' + '\n  - '.join(problems))
         return 1
 
+    hist_old = find_projh(html)
+    hist = hist_old[2] if hist_old else None
+    if hist_old and proj:
+        hist = upsert_history(hist, proj)
     same = all(D[k] == old[k] for k in ('asof', 'partial', 'meta', 'daily', 'county', 'precinct', 'heat'))
     if proj_old and proj != proj_old[2]:
+        same = False
+    if hist_old and hist != hist_old[2]:
         same = False
     if same and not args.force:
         log('data identical to the live page; not rewriting')
@@ -406,6 +439,8 @@ def main():
         parts = [(i, end, dump_data(D))]
         if proj_old:
             parts.append((proj_old[0], proj_old[1], dump_data(proj) if proj else 'null'))
+        if hist_old:
+            parts.append((hist_old[0], hist_old[1], dump_data(hist) if hist else 'null'))
         out = html
         for a, b, txt in sorted(parts, reverse=True):  # replace from the end so earlier offsets stay valid
             out = out[:a] + txt + out[b:]

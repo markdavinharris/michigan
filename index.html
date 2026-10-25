@@ -288,6 +288,14 @@ footer.meth .cs svg{height:22px;width:auto}
 #s-proj ul.meth{margin:0;padding-left:18px;display:grid;gap:6px;color:var(--fg2);font-size:13.5px;max-width:76ch}
 #s-proj .scopenote{background:var(--surface2);border-radius:var(--radius);padding:8px 12px;font-size:13px;color:var(--fg2);margin-bottom:12px}
 @media (max-width:560px){#s-proj .drow,#s-proj .axisrow{grid-template-columns:76px minmax(0,1fr)}#s-proj .drow .vals{grid-column:2;text-align:left}#s-proj .axisrow>span:last-child{display:none}}
+#s-proj .trend{margin-top:14px}
+#s-proj .tchart{position:relative;min-height:260px}
+#s-proj .tchart svg{display:block;width:100%;height:260px;overflow:visible}
+#s-proj .tchart text{font-size:11px;fill:var(--muted);font-variant-numeric:tabular-nums}
+#s-proj .tchart .endlab{font-weight:700;fill:var(--fg)}
+#s-proj .ttip{position:absolute;top:6px;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 4px 14px rgba(0,0,0,.12);padding:6px 10px;font-size:12px;line-height:1.45;white-space:nowrap;font-variant-numeric:tabular-nums;z-index:2}
+#s-proj .ttip .dd{color:var(--muted)}
+#s-proj .tnote{margin:8px 0 0;font-size:12.5px;color:var(--muted);max-width:90ch}
 </style>
 <section id="s-proj">
   <header><div><div class="rule"></div><h2>Projected final electorate <small>early vote plus who is likely still to vote</small></h2></div><span class="warnchip">Experimental</span></header>
@@ -310,6 +318,12 @@ footer.meth .cs svg{height:22px;width:auto}
         <div class="ptitle"><h3>How this is built, and how it has done</h3></div>
         <ul class="meth" id="proj-meth"></ul>
       </div>
+    </div>
+    <div class="panel trend" id="proj-trend" hidden>
+      <div class="ptitle"><h3>Projection over time</h3><span class="sub">GOP minus Dem points, one point per day of data</span></div>
+      <div class="tchart" id="proj-tchart"></div>
+      <div class="legend"><span><i style="background:var(--fg);height:3px;width:22px;border-radius:2px"></i>Projected final electorate</span><span><i style="background:var(--fg);opacity:.14;height:10px;width:22px;border-radius:2px"></i>Projection range</span><span><svg width="22" height="10" aria-hidden="true" style="flex:0 0 auto;margin-right:6px;vertical-align:middle"><line x1="0" y1="5" x2="22" y2="5" stroke="var(--muted)" stroke-width="2" stroke-dasharray="4 3"/></svg>Early votes cast so far</span><span id="proj-tev"><i style="background:var(--line);height:10px;width:22px;border-radius:2px"></i>Before in-person early voting opened</span></div>
+      <p class="tnote" id="proj-tnote"></p>
     </div>
     <p style="margin:12px 0 0"><button class="linkbtn" id="proj-hide" type="button">Hide projections</button></p>
   </div>
@@ -355,8 +369,67 @@ function draw(){
       return `The 2026 early vote is more Democratic than in ${d22?'2022':'2024'} but more Republican than in ${d22?'2024':'2022'} at this point ${cmp}, so the projection sits between what those two cycles' timing would imply.`;})()
   ].concat(P.state==='MI'?[`Michigan's feed carries mail ballots only. In-person early votes (from Oct 24, 2026) are not in it, so here they count as votes still to come, as they did in the 2022 and 2024 data the model learned from.`]:[]).map(t=>`<li>${t}</li>`).join('');
 }
+const PH = {"ev_open":"2026-09-24","rows":[{"asof":"2026-10-04","early_net":-13.5,"proj_net":5.2,"net_lo":2.3,"net_hi":7.2,"early_votes":128073,"source":"backfill"},{"asof":"2026-10-05","early_net":-11.6,"proj_net":7.4,"net_lo":2.0,"net_hi":7.7,"early_votes":207035,"source":"backfill"},{"asof":"2026-10-06","early_net":-10.6,"proj_net":6.9,"net_lo":2.3,"net_hi":7.6,"early_votes":255416,"source":"backfill"},{"asof":"2026-10-07","early_net":-9.9,"proj_net":6.8,"net_lo":2.4,"net_hi":7.6,"early_votes":300494,"source":"backfill"},{"asof":"2026-10-08","early_net":-9.4,"proj_net":6.3,"net_lo":2.2,"net_hi":7.6,"early_votes":350329,"source":"backfill"},{"asof":"2026-10-09","early_net":-9.4,"proj_net":6.1,"net_lo":2.3,"net_hi":7.5,"early_votes":390684,"source":"backfill"},{"asof":"2026-10-10","early_net":-9.3,"proj_net":6.0,"net_lo":2.3,"net_hi":7.5,"early_votes":394677,"source":"backfill"},{"asof":"2026-10-11","early_net":-9.1,"proj_net":6.1,"net_lo":2.3,"net_hi":7.5,"early_votes":397627,"source":"backfill"},{"asof":"2026-10-12","early_net":-8.7,"proj_net":5.9,"net_lo":2.1,"net_hi":7.5,"early_votes":444235,"source":"backfill"},{"asof":"2026-10-13","early_net":-7.9,"proj_net":5.9,"net_lo":2.2,"net_hi":7.5,"early_votes":525314,"source":"backfill"},{"asof":"2026-10-14","early_net":-7.4,"proj_net":6.2,"net_lo":2.1,"net_hi":7.6,"early_votes":577471,"source":"backfill"},{"asof":"2026-10-15","early_net":-7.3,"proj_net":6.0,"net_lo":2.0,"net_hi":7.5,"early_votes":633622,"source":"backfill"},{"asof":"2026-10-16","early_net":-7.0,"proj_net":6.2,"net_lo":1.9,"net_hi":7.6,"early_votes":676978,"source":"backfill"},{"asof":"2026-10-17","early_net":-7.0,"proj_net":6.4,"net_lo":2.0,"net_hi":7.7,"early_votes":683385,"source":"backfill"},{"asof":"2026-10-18","early_net":-6.9,"proj_net":6.4,"net_lo":2.1,"net_hi":7.8,"early_votes":686564,"source":"backfill"},{"asof":"2026-10-19","early_net":-6.0,"proj_net":6.5,"net_lo":2.1,"net_hi":7.8,"early_votes":792516,"source":"backfill"},{"asof":"2026-10-20","early_net":-5.5,"proj_net":6.5,"net_lo":2.0,"net_hi":7.8,"early_votes":861765,"source":"backfill"},{"asof":"2026-10-21","early_net":-5.2,"proj_net":6.6,"net_lo":2.2,"net_hi":7.8,"early_votes":921198,"source":"backfill"},{"asof":"2026-10-22","early_net":-4.8,"proj_net":6.5,"net_lo":2.2,"net_hi":7.7,"early_votes":984083,"source":"live"}]};
+function trendRows(){
+  if(!PH||!Array.isArray(PH.rows))return [];
+  const m={};PH.rows.forEach(r=>{m[r.asof]=r;});
+  m[P.asof]={asof:P.asof,early_net:P.early_net,proj_net:P.proj_net,net_lo:P.net_lo,net_hi:P.net_hi,early_votes:P.early_votes,source:'live'};
+  return Object.values(m).filter(r=>r.asof<=P.asof).sort((a,b)=>a.asof<b.asof?-1:1);
+}
+function drawTrend(){
+  const rows=trendRows(), box=document.getElementById('proj-trend');
+  if(rows.length<2){box.hidden=true;return;}
+  box.hidden=false;
+  const el=document.getElementById('proj-tchart');el.innerHTML='';
+  const NS='http://www.w3.org/2000/svg', W=Math.max(300,el.clientWidth||640), H=260;
+  const net=v=>Math.abs(v)<0.05?'Even':(v>0?'R+':'D+')+Math.abs(v).toFixed(1);
+  const tk=v=>v===0?'Even':(v>0?'R+':'D+')+Math.abs(v);
+  const day=s=>new Date(s+'T12:00:00');
+  const fd=s=>day(s).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const vals=rows.flatMap(r=>[r.net_lo,r.net_hi,r.early_net,r.proj_net]).concat([0]);
+  let lo=Math.min(...vals),hi=Math.max(...vals);const span=hi-lo||1;
+  const step=[1,2,5,10,20,25,50].find(s=>span/s<=6)||50;
+  lo=Math.floor(lo/step)*step;hi=Math.ceil(hi/step)*step;
+  const ticks=[];for(let t=lo;t<=hi+1e-9;t+=step)ticks.push(+t.toFixed(6));
+  const ml=8+7*Math.max(...ticks.map(t=>tk(t).length)), last=rows[rows.length-1];
+  const mr=14+7*Math.max(net(last.proj_net).length,net(last.early_net).length), mt=10, mb=26;
+  const t0=day(rows[0].asof).getTime(), t1=day(last.asof).getTime();
+  const x=s=>ml+(W-ml-mr)*(day(s).getTime()-t0)/((t1-t0)||1);
+  const y=v=>mt+(H-mt-mb)*(hi-v)/((hi-lo)||1);
+  const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('role','img');
+  svg.setAttribute('aria-label',`Projected final electorate by day, from ${net(rows[0].proj_net)} on ${fd(rows[0].asof)} to ${net(last.proj_net)} on ${fd(last.asof)}`);
+  const add=(tag,a,txt)=>{const n=document.createElementNS(NS,tag);for(const k in a)n.setAttribute(k,a[k]);if(txt!=null)n.textContent=txt;svg.appendChild(n);return n;};
+  const ev=PH.ev_open;
+  document.getElementById('proj-tev').hidden=!(ev&&ev>rows[0].asof);
+  if(ev&&ev>rows[0].asof){const xe=x(ev<=last.asof?ev:last.asof);add('rect',{x:ml,y:mt,width:Math.max(0,xe-ml),height:H-mt-mb,fill:'var(--line)',opacity:.45});}
+  ticks.forEach(t=>{add('line',{x1:ml,x2:W-mr,y1:y(t),y2:y(t),stroke:t===0?'var(--muted)':'var(--line)','stroke-width':1});add('text',{x:ml-6,y:y(t),dy:'0.32em','text-anchor':'end'},tk(t));});
+  const nx=Math.max(2,Math.min(6,Math.floor((W-ml-mr)/80))), idx=[...new Set(Array.from({length:nx},(_,i)=>Math.round(i*(rows.length-1)/(nx-1))))];
+  idx.forEach(i=>add('text',{x:x(rows[i].asof),y:H-8,'text-anchor':i===0?'start':i===rows.length-1?'end':'middle'},fd(rows[i].asof)));
+  const pts=k=>rows.map(r=>`${x(r.asof).toFixed(1)},${y(r[k]).toFixed(1)}`);
+  add('path',{d:'M'+pts('net_hi').join('L')+'L'+pts('net_lo').reverse().join('L')+'Z',fill:'var(--fg)',opacity:.12});
+  add('path',{d:'M'+pts('early_net').join('L'),fill:'none',stroke:'var(--muted)','stroke-width':2,'stroke-dasharray':'4 3'});
+  add('path',{d:'M'+pts('proj_net').join('L'),fill:'none',stroke:'var(--fg)','stroke-width':2.5,'stroke-linejoin':'round','stroke-linecap':'round'});
+  add('circle',{cx:x(last.asof),cy:y(last.proj_net),r:3.5,fill:'var(--fg)'});
+  let ly=y(last.proj_net),ey=y(last.early_net);if(Math.abs(ly-ey)<13){if(ly<ey){ly-=7;ey+=7;}else{ly+=7;ey-=7;}}
+  add('text',{x:x(last.asof)+7,y:ly,dy:'0.32em',class:'endlab'},net(last.proj_net));
+  add('text',{x:x(last.asof)+7,y:ey,dy:'0.32em'},net(last.early_net));
+  const rule=add('line',{y1:mt,y2:H-mb,stroke:'var(--muted)',opacity:0}), dot=add('circle',{r:4,fill:'var(--fg)',opacity:0});
+  const hit=add('rect',{x:ml,y:0,width:W-ml-mr,height:H,fill:'transparent'});
+  el.appendChild(svg);
+  const tip=document.createElement('div');tip.className='ttip';tip.hidden=true;el.appendChild(tip);
+  const fmtN=n=>n==null?'':` · ${Math.round(n).toLocaleString('en-US')} votes`;
+  function at(cx){const sx=(cx-svg.getBoundingClientRect().left)*W/svg.getBoundingClientRect().width;let b=0,bd=1e9;rows.forEach((r,i)=>{const d=Math.abs(x(r.asof)-sx);if(d<bd){bd=d;b=i;}});return rows[b];}
+  function show(ev){const r=at(ev.clientX), px=x(r.asof);rule.setAttribute('x1',px);rule.setAttribute('x2',px);rule.setAttribute('opacity',1);dot.setAttribute('cx',px);dot.setAttribute('cy',y(r.proj_net));dot.setAttribute('opacity',1);
+    tip.innerHTML=`<div class="dd">${fd(r.asof)}</div><div>Projected <b>${net(r.proj_net)}</b> (${net(r.net_lo)} to ${net(r.net_hi)})</div><div>Early vote ${net(r.early_net)}${fmtN(r.early_votes)}</div>`;
+    tip.hidden=false;const bw=el.clientWidth,tw=tip.offsetWidth,sc=bw/W;let l=px*sc+12;if(l+tw>bw)l=px*sc-tw-12;tip.style.left=Math.max(0,l)+'px';}
+  function hide(){tip.hidden=true;rule.setAttribute('opacity',0);dot.setAttribute('opacity',0);}
+  hit.addEventListener('pointermove',show);hit.addEventListener('pointerdown',show);hit.addEventListener('pointerleave',hide);
+  const reb=rows.filter(r=>r.source==='backfill');
+  document.getElementById('proj-tnote').textContent=(reb.length?`Days through ${fd(reb[reb.length-1].asof)} were rebuilt afterwards from the data as it stood on each day (records that arrived late are included). Later days are the projection this page showed for that day. `:'')+'Each point uses only the early votes in by that day.';
+}
+let tw0=0;window.addEventListener('resize',()=>{const el=document.getElementById('proj-tchart');if(!body.hidden&&el&&Math.abs(el.clientWidth-tw0)>20){tw0=el.clientWidth;drawTrend();}});
 function setScopeNote(){const s=document.getElementById('scope');document.getElementById('proj-scope').hidden=!s||s.value==='STATE';}
-function reveal(remember){gate.hidden=true;body.hidden=false;draw();setScopeNote();if(remember){try{sessionStorage.setItem(KEY,'1');}catch(e){}}}
+function reveal(remember){gate.hidden=true;body.hidden=false;draw();drawTrend();setScopeNote();if(remember){try{sessionStorage.setItem(KEY,'1');}catch(e){}}}
 ack.addEventListener('change',()=>{show.disabled=!ack.checked;});
 show.addEventListener('click',()=>{if(ack.checked)reveal(true);});
 document.getElementById('proj-hide').addEventListener('click',()=>{body.hidden=true;gate.hidden=false;ack.checked=false;show.disabled=true;try{sessionStorage.removeItem(KEY);}catch(e){}});
