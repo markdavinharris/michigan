@@ -1110,16 +1110,16 @@ draw();
 })();
 
 /* ---------- Win calculator poll presets (public polls, Oct 2026) ---------- */
-window.CS_POLLS=[{"race":"Senate","rep":"Mike Rogers","dem":"Abdul El-Sayed","two":{"R":96.6,"D":3.4,"O":45.7},"polls":[{"pollster":"Data for Progress","dates":"Oct 23-25, 2026","n":"622 LV","url":"https://www.filesforprogress.org/datasets/2026/10/dfp_2026_mi_ge_tabs.pdf","two":{"R":93.8,"D":4.0,"O":48.4}},{"pollster":"RedBox Research (A Fight Worth Having super PAC)","dates":"Oct 20-23, 2026","n":"2,696 LV","url":"https://afightworthhaving.com/polling/2026/michigan/crosstabs.csv","two":{"R":99.0,"D":2.1,"O":41.9}},{"pollster":"Marist Poll","dates":"Oct 15-18, 2026","n":"LV subset of 1,185 RV","url":"https://maristpoll.marist.edu/wp-content/uploads/2026/10/Marist-Poll_MI-NOS-and-Tables_202610191238FFx09@Jal.pdf","two":{"R":96.9,"D":4.0,"O":46.8}}]},{"race":"Governor","rep":"John James","dem":"Jocelyn Benson","two":{"R":96.4,"D":1.0,"O":44.3},"polls":[{"pollster":"Data for Progress","dates":"Oct 23-25, 2026","n":"622 LV","url":"https://www.filesforprogress.org/datasets/2026/10/dfp_2026_mi_ge_tabs.pdf","two":{"R":94.6,"D":1.0,"O":45.7}},{"pollster":"RedBox Research (A Fight Worth Having super PAC)","dates":"Oct 20-23, 2026","n":"2,696 LV","url":"https://afightworthhaving.com/polling/2026/michigan/crosstabs.csv","two":{"R":98.9,"D":1.0,"O":41.0}},{"pollster":"Marist Poll","dates":"Oct 15-18, 2026","n":"LV subset of 1,185 RV","url":"https://maristpoll.marist.edu/wp-content/uploads/2026/10/Marist-Poll_MI-NOS-and-Tables_202610191238FFx09@Jal.pdf","two":{"R":95.8,"D":1.0,"O":46.3}}]}];
-/* ---------- Win calculator (added 2026-11-01; poll presets v2) ---------- */
+window.CS_POLLS=[{"race":"Senate","rep":"Mike Rogers","dem":"Abdul El-Sayed","avg":{"R":{"r":93.7,"d":3.3},"D":{"r":3.3,"d":95.0},"O":{"r":41.3,"d":49.0}},"polls":[{"pollster":"Data for Progress","dates":"Oct 23-25, 2026","n":"622 LV","url":"https://www.filesforprogress.org/datasets/2026/10/dfp_2026_mi_ge_tabs.pdf","v":{"R":{"r":91,"d":6},"D":{"r":4,"d":95},"O":{"r":44,"d":47}}},{"pollster":"RedBox Research (A Fight Worth Having super PAC)","dates":"Oct 20-23, 2026","n":"2,696 LV","url":"https://afightworthhaving.com/polling/2026/michigan/crosstabs.csv","v":{"R":{"r":95,"d":1},"D":{"r":2,"d":95},"O":{"r":36,"d":50}}},{"pollster":"Marist Poll","dates":"Oct 15-18, 2026","n":"LV subset of 1,185 RV","url":"https://maristpoll.marist.edu/wp-content/uploads/2026/10/Marist-Poll_MI-NOS-and-Tables_202610191238FFx09@Jal.pdf","v":{"R":{"r":95,"d":3},"D":{"r":4,"d":95},"O":{"r":44,"d":50}}}]},{"race":"Governor","rep":"John James","dem":"Jocelyn Benson","avg":{"R":{"r":91.0,"d":3.3},"D":{"r":1.0,"d":97.7},"O":{"r":40.0,"d":50.0}},"polls":[{"pollster":"Data for Progress","dates":"Oct 23-25, 2026","n":"622 LV","url":"https://www.filesforprogress.org/datasets/2026/10/dfp_2026_mi_ge_tabs.pdf","v":{"R":{"r":88,"d":5},"D":{"r":1,"d":99},"O":{"r":42,"d":50}}},{"pollster":"RedBox Research (A Fight Worth Having super PAC)","dates":"Oct 20-23, 2026","n":"2,696 LV","url":"https://afightworthhaving.com/polling/2026/michigan/crosstabs.csv","v":{"R":{"r":94,"d":1},"D":{"r":1,"d":95},"O":{"r":34,"d":49}}},{"pollster":"Marist Poll","dates":"Oct 15-18, 2026","n":"LV subset of 1,185 RV","url":"https://maristpoll.marist.edu/wp-content/uploads/2026/10/Marist-Poll_MI-NOS-and-Tables_202610191238FFx09@Jal.pdf","v":{"R":{"r":91,"d":4},"D":{"r":1,"d":99},"O":{"r":44,"d":51}}}]}];
+/* ---------- Win calculator (added 2026-11-01; v3: R and D shares per group, undecided split evenly) ---------- */
 (function(){
 var E=window.EDAY_DATA; if(!E||typeof cum!=='function')return;
 var PN=(typeof PNAME!=='undefined'&&PNAME)?PNAME:{R:'Republican',D:'Democratic',O:'Other'};
 var KS=['R','D','O'], SH={R:'Republicans',D:'Democrats',O:PN.O};
-var KEY='cs_wincalc';
+var KEY='cs_wincalc3';
 var POLLS=window.CS_POLLS||[];
-var S={sup:{R:90,D:5,O:40}, custom:{R:40,D:35,O:25}, sel:'e26_22', src:null};
-try{var sv=JSON.parse(localStorage.getItem(KEY)||'null'); if(sv&&sv.sup){S.sup=sv.sup;S.custom=sv.custom||S.custom;S.sel=sv.sel||S.sel;S.src=(sv.src!=null&&POLLS[sv.src])?sv.src:null;}}catch(e){}
+var S={v:{R:{r:90,d:6},D:{r:5,d:92},O:{r:42,d:44}}, custom:{R:40,D:35,O:25}, sel:'e26_22', src:null};
+try{var sv=JSON.parse(localStorage.getItem(KEY)||'null'); if(sv&&sv.v&&sv.v.R&&sv.v.D&&sv.v.O){S.v=sv.v;S.custom=sv.custom||S.custom;S.sel=sv.sel||S.sel;S.src=(sv.src!=null&&POLLS[sv.src])?sv.src:null;}}catch(e){}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 var css='#wc-fab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));z-index:40;display:flex;align-items:center;gap:8px;padding:11px 16px;border-radius:999px;background:var(--gold);color:var(--navy);font-weight:800;font-size:14px;letter-spacing:.02em;box-shadow:0 4px 16px rgba(0,0,0,.25)}'
 +'#wc-fab svg{width:18px;height:18px}'
@@ -1149,8 +1149,10 @@ var css='#wc-fab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));b
 +'#wc .cus{display:none;gap:8px;grid-template-columns:repeat(3,minmax(0,1fr));margin-top:10px}#wc .cus.on{display:grid}#wc .cus label{font-size:12px;color:var(--muted);display:grid;gap:3px}'
 +'#wc .presets .pl{font-size:12px;color:var(--muted);align-self:center;min-width:92px}#wc .presets button.on{background:var(--navy);color:#fff;border-color:var(--navy)}#wc .presets button b{font-weight:800}'
 +'#wc .src{font-size:12px;color:var(--fg2);background:var(--surface);border:1px solid var(--line2);border-radius:6px;padding:8px 10px;margin-top:8px}#wc .src ul{margin:4px 0 0;padding-left:16px}#wc .src a{color:var(--y26)}'
++'#wc .grp{display:grid;grid-template-columns:minmax(0,130px) minmax(0,1fr);gap:4px 12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line2)}#wc .grp .gl{font-weight:700;font-size:14px;color:var(--fg)}#wc .grp .gl i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px}#wc .grp .gl small{display:block;font-weight:500;font-size:12px;color:var(--muted);margin-top:2px}'
++'#wc .cand{display:grid;grid-template-columns:96px minmax(0,1fr) 70px;gap:10px;align-items:center;font-size:13px;color:var(--fg2)}#wc .cand+.cand{margin-top:4px}'
 +'#wc .warn{font-size:12px;color:var(--neg)}#wc .fine{font-size:12px;color:var(--muted);margin:0}'
-+'@media (max-width:560px){#wc{width:100%;max-height:100%;height:100%;border-radius:0}#wc .sl{grid-template-columns:minmax(0,1fr) 70px}#wc .sl input[type=range]{grid-column:1/-1;grid-row:2}#wc .hide-s{display:none}}';
++'@media (max-width:560px){#wc{width:100%;max-height:100%;height:100%;border-radius:0}#wc .grp{grid-template-columns:1fr}#wc .cand{grid-template-columns:80px minmax(0,1fr) 64px}#wc .hide-s{display:none}}';
 var st=document.createElement('style');st.textContent=css;document.head.appendChild(st);
 var fab=document.createElement('button');fab.id='wc-fab';fab.type='button';
 fab.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><rect x="4" y="2.5" width="16" height="19" rx="2"/><path d="M8 7h8M8 12h2M14 12h2M8 16h2M14 16h2"/></svg>Win calculator';
@@ -1158,49 +1160,53 @@ document.body.appendChild(fab);
 var dlg=document.createElement('dialog');dlg.id='wc';dlg.setAttribute('aria-labelledby','wc-t');
 dlg.innerHTML='<div class="wch"><div><h2 id="wc-t">Win calculator</h2><p id="wc-scope"></p></div><button type="button" class="wcx" id="wc-x" aria-label="Close">×</button></div>'
 +'<div class="wcb">'
-+'<div><h3>1 · Share of each party voting for the candidate</h3><div id="wc-sl"></div>'
-+'<div class="presets" id="wc-ppre"></div><div class="presets" id="wc-pre"></div><div class="src" id="wc-src" hidden></div></div>'
-+'<div><h3>2 · Who turns out</h3><p class="fine" style="margin-bottom:6px">Click a row to see it in detail. Every row uses the support numbers above.</p>'
-+'<table><thead><tr><th>Electorate assumption</th><th class="hide-s">Mix (R / D / '+PN.O.split(' ')[0]+')</th><th>Candidate</th><th>Result</th></tr></thead><tbody id="wc-rows"></tbody></table>'
++'<div><h3>1 · How each party group votes</h3><p class="fine" style="margin-bottom:4px">Set the Republican and Democratic candidates’ shares in each group. Whatever is left in a group is undecided and is split evenly between the two.</p><div id="wc-sl"></div>'
++'<div class="presets" id="wc-ppre" style="margin-top:10px"></div><div class="presets" id="wc-pre"></div><div class="src" id="wc-src" hidden></div></div>'
++'<div><h3>2 · Who turns out</h3><p class="fine" style="margin-bottom:6px">Click a row to see it in detail. Every row uses the vote shares above.</p>'
++'<table><thead><tr><th>Electorate assumption</th><th class="hide-s">Mix (R / D / '+PN.O.split(' ')[0]+')</th><th>Rep share</th><th>Result</th></tr></thead><tbody id="wc-rows"></tbody></table>'
 +'<div class="cus" id="wc-cus"></div><div class="warn" id="wc-cw"></div></div>'
 +'<div class="big" id="wc-big"></div>'
-+'<p class="fine">Two-way race: everyone not voting for the candidate is counted for the opponent, and minor candidates and blank ballots are ignored. Electorates are built from this page’s data: early votes by party from the early-vote feed, plus Election Day voters by party from each year’s voter file (the Election Day section above). Party is grouped as on the rest of the page ('+((typeof ST!=='undefined'&&ST&&ST.party_label)||'party')+'). “2026 so far + Election Day like 2022” adds 2022’s Election Day voters, by party, to the 2026 early vote counted so far, so it assumes Election Day turnout repeats 2022’s; the 2026 early vote is still growing.</p>'
++'<p class="fine">Undecided voters in each party group (anyone not counted for either candidate, including third-party voters) are split 50/50 between the Republican and the Democrat, so each group adds its Republican-minus-Democratic gap, weighted by its share of the electorate. Electorates are built from this page’s data: early votes by party from the early-vote feed, plus Election Day voters by party from each year’s voter file (the Election Day section above). Party is grouped as on the rest of the page ('+((typeof ST!=='undefined'&&ST&&ST.party_label)||'party')+'). “2026 so far + Election Day like 2022” adds 2022’s Election Day voters, by party, to the 2026 early vote counted so far, so it assumes Election Day turnout repeats 2022’s; the 2026 early vote is still growing.</p>'
 +'</div>';
 document.body.appendChild(dlg);
 var n=function(x){return Math.round(x).toLocaleString('en-US');};
+var fx=function(v){return (Math.round(v*10)/10).toString();};
 var tc=function(s){return s.toLowerCase().replace(/\b\w/g,function(c){return c.toUpperCase();});};
 function scope(){return (typeof state!=='undefined'&&state&&state.scope)?state.scope:'STATE';}
 function edBy(y,key){var p=((E.p||{})[y]||{})[key]; return p?{R:p[0],D:p[1],O:p[2]}:null;}
 function evBy(y,sc,dmin){var o={};KS.forEach(function(k){o[k]=cum(sc,y,'ev',k,dmin);});return o;}
 function add(a,b){var o={};KS.forEach(function(k){o[k]=(a?a[k]:0)+(b?b[k]:0);});return o;}
+function und(k){return Math.max(0,100-S.v[k].r-S.v[k].d);}
+function gap(k){return S.v[k].r-S.v[k].d;}            // R minus D points within group k (undecided split evenly cancels)
 function scenarios(){
   var sc=scope(), key=sc==='STATE'?'_':sc;
   var e26=evBy('2026',sc,ASOF), ed22=edBy('2022',key), ed24=edBy('2024',key);
-  var asofTxt=new Date(E.asof+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
-  var L=[
-    {id:'e26_22',name:'2026 early vote so far + Election Day like 2022',sub:'early vote through '+(typeof dateOf==='function'?dateOf('2026',ASOF).toLocaleDateString('en-US',{month:'short',day:'numeric'}):asofTxt),c:add(e26,ed22)},
+  var thru=(typeof dateOf==='function'?dateOf('2026',ASOF):new Date(E.asof+'T12:00:00')).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  return [
+    {id:'e26_22',name:'2026 early vote so far + Election Day like 2022',sub:'early vote through '+thru,c:add(e26,ed22)},
     {id:'e26_24',name:'2026 early vote so far + Election Day like 2024',sub:'presidential-year Election Day',c:add(e26,ed24)},
     {id:'f22',name:'2022 electorate',sub:'all early votes + Election Day',c:add(evBy('2022',sc,null),ed22)},
     {id:'f24',name:'2024 electorate',sub:'all early votes + Election Day',c:add(evBy('2024',sc,null),ed24)},
     {id:'e26',name:'2026 early vote so far only',sub:'as if no one else votes',c:e26},
     {id:'cus',name:'Custom mix',sub:'set the shares below',c:null}
   ];
-  return L;
 }
-function share(c){var t=c.R+c.D+c.O; if(!t)return null; return {t:t, r:c.R/t, d:c.D/t, o:c.O/t, cand:(c.R*S.sup.R+c.D*S.sup.D+c.O*S.sup.O)/100/t};}
+function share(c){var t=c.R+c.D+c.O; if(!t)return null; var w={R:c.R/t,D:c.D/t,O:c.O/t}; var m=0; KS.forEach(function(k){m+=w[k]*gap(k);});
+  return {t:t, r:w.R, d:w.D, o:w.O, w:w, margin:m, rep:50+m/2};}   // margin in points, R minus D
 function custC(){var t=S.custom.R+S.custom.D+S.custom.O||1; return {R:S.custom.R/t,D:S.custom.D/t,O:S.custom.O/t};}
+function names(){var i=S.src; if(i!=null&&POLLS[i]&&match(i)){var r=POLLS[i];return {R:r.rep.split(' ').slice(-1)[0],D:r.dem.split(' ').slice(-1)[0]};} return {R:'Republican',D:'Democrat'};}
 function draw(){
   var sc=scope();
   document.getElementById('wc-scope').textContent=(sc==='STATE'?(ST&&ST.name)+' statewide':tc(sc)+' County, '+(ST&&ST.name))+' · change the area with the View menu on the page';
   var cs=getComputedStyle(document.documentElement), C={R:cs.getPropertyValue('--rep').trim(),D:cs.getPropertyValue('--dem').trim(),O:cs.getPropertyValue('--oth').trim()};
-  var L=scenarios(), rows='', selRow=null;
+  var NM=names(), L=scenarios(), rows='', selRow=null;
   L.forEach(function(s){
     var c=s.id==='cus'?custC():s.c, m=c?share(c):null;
     if(s.id===S.sel)selRow={s:s,m:m};
-    var res=m?(m.cand>0.5?'<span class="res w">Wins +'+((2*m.cand-1)*100).toFixed(1)+'</span>':(m.cand<0.5?'<span class="res l">Loses −'+((1-2*m.cand)*100).toFixed(1)+'</span>':'<span class="res">Tie</span>')):'–';
+    var res=m?(m.margin>0.005?'<span class="res w">R +'+m.margin.toFixed(1)+'</span>':(m.margin<-0.005?'<span class="res l">D +'+(-m.margin).toFixed(1)+'</span>':'<span class="res">Tie</span>')):'–';
     rows+='<tr data-id="'+s.id+'" class="'+(s.id===S.sel?'on':'')+'" tabindex="0"><td><b>'+s.name+'</b><small>'+s.sub+(m&&s.id!=='cus'?' · '+n(m.t)+' votes':'')+'</small></td>'
-      +'<td class="hide-s">'+(m?(m.r*100).toFixed(0)+' / '+(m.d*100).toFixed(0)+' / '+(m.o*100).toFixed(0)+'<div class="mixb">'+KS.map(function(k){return '<span style="flex:'+m[k.toLowerCase()]+';background:'+C[k]+'"></span>';}).join('')+'</div>':'–')+'</td>'
-      +'<td>'+(m?(m.cand*100).toFixed(1)+'%':'–')+'</td><td>'+res+'</td></tr>';
+      +'<td class="hide-s">'+(m?(m.r*100).toFixed(0)+' / '+(m.d*100).toFixed(0)+' / '+(m.o*100).toFixed(0)+'<div class="mixb">'+KS.map(function(k){return '<span style="flex:'+m.w[k]+';background:'+C[k]+'"></span>';}).join('')+'</div>':'–')+'</td>'
+      +'<td>'+(m?m.rep.toFixed(1)+'%':'–')+'</td><td>'+res+'</td></tr>';
   });
   var tb=document.getElementById('wc-rows'); tb.innerHTML=rows;
   tb.querySelectorAll('tr').forEach(function(tr){var go=function(){S.sel=tr.dataset.id;save();draw();};tr.addEventListener('click',go);tr.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}});});
@@ -1208,37 +1214,41 @@ function draw(){
   var ct=S.custom.R+S.custom.D+S.custom.O; document.getElementById('wc-cw').textContent=(S.sel==='cus'&&Math.abs(ct-100)>0.5)?'Custom shares add to '+ct+'%; they are scaled to 100% for the math.':'';
   var big=document.getElementById('wc-big');
   if(!selRow||!selRow.m){big.className='big';big.innerHTML='<div>No data for this assumption in this area.</div>';return;}
-  var m=selRow.m, win=m.cand>0.5, mg=(2*m.cand-1)*100, hasT=selRow.s.id!=='cus';
-  big.className='big '+(win?'w':(m.cand<0.5?'l':''));
-  function need(k){ // support needed in party k (others fixed) to reach 50%
-    var w=m[k.toLowerCase()]; if(!w)return null; var rest=0; KS.forEach(function(j){if(j!==k)rest+=m[j.toLowerCase()]*S.sup[j]/100;}); return (0.5-rest)/w*100; }
-  var needTxt=function(k){var v=need(k); if(v==null)return '–'; if(v<=0)return 'wins even with 0% of '+SH[k]; if(v>100)return 'can’t win even with 100% of '+SH[k]; return '<b>'+v.toFixed(1)+'%</b> of '+SH[k]+' (now '+S.sup[k]+'%)';};
-  var who=(S.src!=null&&POLLS[S.src]&&match(S.src))?POLLS[S.src].rep.split(' ').slice(-1)[0]+' ':'';
-  big.innerHTML='<div class="v">'+who+(win?(who?'wins':'Wins'):(m.cand<0.5?(who?'loses':'Loses'):'Tie'))+' '+(mg>=0?'+':'−')+Math.abs(mg).toFixed(1)+'<small>points · '+(m.cand*100).toFixed(1)+'% to '+((1-m.cand)*100).toFixed(1)+'%</small></div>'
-   +'<div style="font-size:13px;color:var(--fg2)">'+selRow.s.name+(hasT?' · about <b>'+n(Math.abs(mg)/100*m.t)+'</b> votes '+(win?'ahead':'behind')+' of '+n(m.t)+' cast':'')+'</div>'
-   +'<ul><li>Electorate: '+KS.map(function(k){return SH[k]+' <b>'+(m[k.toLowerCase()]*100).toFixed(1)+'%</b>';}).join(' · ')+'</li>'
-   +'<li>To break even, holding the other two groups where they are, the candidate needs '+needTxt('O')+'; or '+needTxt('R')+'; or '+needTxt('D')+'.</li></ul>';
+  var m=selRow.m, mg=m.margin, rw=mg>0.005, dw=mg<-0.005, hasT=selRow.s.id!=='cus';
+  big.className='big '+(rw?'w':(dw?'l':''));
+  // Republican share needed in group k (Democratic share in k held) to tie: sum w_j*gap_j = 0
+  function need(k){var w=m.w[k]; if(!w)return null; var rest=0; KS.forEach(function(j){if(j!==k)rest+=m.w[j]*gap(j);}); return S.v[k].d - rest/w;}
+  var needTxt=function(k){var v=need(k), cap=100-S.v[k].d; if(v==null)return '–'; if(v<=0)return 'ties even at 0% of '+SH[k];
+    if(v>cap)return 'can’t tie even with every undecided '+SH[k].replace(/s$/,'')+' (Dem at '+fx(S.v[k].d)+'%)'; return '<b>'+v.toFixed(1)+'%</b> of '+SH[k]+' (now '+fx(S.v[k].r)+'%, Dem held at '+fx(S.v[k].d)+'%)';};
+  var head=rw?NM.R+' wins':(dw?NM.D+' wins':'Tie');
+  big.innerHTML='<div class="v">'+head+' '+(rw||dw?'+'+Math.abs(mg).toFixed(1):'')+'<small>points · '+NM.R+' '+m.rep.toFixed(1)+'% to '+NM.D+' '+(100-m.rep).toFixed(1)+'%</small></div>'
+   +'<div style="font-size:13px;color:var(--fg2)">'+selRow.s.name+(hasT?' · about <b>'+n(Math.abs(mg)/100*m.t)+'</b> votes '+(rw?'Republican':(dw?'Democratic':''))+' margin of '+n(m.t)+' cast':'')+'</div>'
+   +'<ul><li>Electorate: '+KS.map(function(k){return SH[k]+' <b>'+(m.w[k]*100).toFixed(1)+'%</b>';}).join(' · ')+'</li>'
+   +'<li>Undecided split evenly: '+KS.map(function(k){return SH[k]+' '+fx(und(k))+'%';}).join(' · ')+'.</li>'
+   +'<li>For the Republican to tie, holding everything else, the Republican needs '+needTxt('O')+'; or '+needTxt('R')+'; or '+needTxt('D')+'.</li></ul>';
 }
-function fx(v){return (Math.round(v*10)/10).toString();}
-function match(i){var r=POLLS[i];return r&&Math.abs(S.sup.R-r.two.R)<0.05&&Math.abs(S.sup.D-r.two.D)<0.05&&Math.abs(S.sup.O-r.two.O)<0.05;}
+function match(i){var r=POLLS[i]; if(!r)return false; return KS.every(function(k){return Math.abs(S.v[k].r-r.avg[k].r)<0.05&&Math.abs(S.v[k].d-r.avg[k].d)<0.05;});}
 function srcBox(){var b=document.getElementById('wc-src'); if(!b)return; var i=S.src;
   document.querySelectorAll('#wc-ppre button').forEach(function(x){x.classList.toggle('on',+x.dataset.i===i&&match(i));});
   if(i==null||!POLLS[i]||!match(i)){b.hidden=true;return;} var r=POLLS[i];
-  b.hidden=false; b.innerHTML='<b>'+r.rep+' (R) vs '+r.dem+' (D), '+r.race+'</b>: '+(r.polls.length>1?'average of '+r.polls.length+' polls':'one poll')+', as the Republican’s two-way share in each party group (undecided and third-party voters split in proportion). Poll “Independents” are applied to this page’s '+SH.O+' group; poll party is self-reported or registration, depending on the pollster.'
-   +(window.CS_POLLS_NOTE?'<p class="warn" style="margin:6px 0 0">'+window.CS_POLLS_NOTE+'</p>':'')+'<ul>'+r.polls.map(function(p){return '<li><a href="'+p.url+'" target="_blank" rel="noopener">'+p.pollster+'</a>, '+p.dates+', '+p.n+': '+fx(p.two.R)+' / '+fx(p.two.D)+' / '+fx(p.two.O)+'</li>';}).join('')+'</ul>';}
+  b.hidden=false; b.innerHTML='<b>'+r.rep+' (R) vs '+r.dem+' (D), '+r.race+'</b>: '+(r.polls.length>1?'average of '+r.polls.length+' polls':'one poll')+' (R% / D% by party group; the rest is undecided or third-party and is split evenly). Poll “Independents” are applied to this page’s '+SH.O+' group; poll party is self-reported or registration, depending on the pollster.'
+   +(window.CS_POLLS_NOTE?'<p class="warn" style="margin:6px 0 0">'+window.CS_POLLS_NOTE+'</p>':'')
+   +'<ul>'+r.polls.map(function(p){return '<li><a href="'+p.url+'" target="_blank" rel="noopener">'+p.pollster+'</a>, '+p.dates+', '+p.n+': '+KS.map(function(k){return (k==='O'?'Ind':k==='R'?'Rep':'Dem')+' '+fx(p.v[k].r)+'–'+fx(p.v[k].d);}).join(' · ')+'</li>';}).join('')+'</ul>';}
+function setV(k,side,v){v=Math.max(0,Math.min(100,+v||0)); var other=side==='r'?'d':'r'; if(v+S.v[k][other]>100)v=100-S.v[k][other]; S.v[k][side]=v; return v;}
 function sliders(){
   var cs=getComputedStyle(document.documentElement), C={R:cs.getPropertyValue('--rep').trim(),D:cs.getPropertyValue('--dem').trim(),O:cs.getPropertyValue('--oth').trim()};
-  document.getElementById('wc-sl').innerHTML=KS.map(function(k){return '<div class="sl"><label for="wc-r'+k+'"><i style="background:'+C[k]+'"></i>'+SH[k]+'</label><input type="range" id="wc-r'+k+'" min="0" max="100" step="0.1" value="'+S.sup[k]+'" aria-label="'+SH[k]+' voting for the candidate, percent"><input type="number" id="wc-n'+k+'" min="0" max="100" step="0.1" value="'+S.sup[k]+'" aria-label="'+SH[k]+' percent"></div>';}).join('');
-  KS.forEach(function(k){var r=document.getElementById('wc-r'+k), nb=document.getElementById('wc-n'+k);
-    r.addEventListener('input',function(){S.sup[k]=+r.value;nb.value=r.value;save();srcBox();draw();});
-    nb.addEventListener('input',function(){var v=Math.max(0,Math.min(100,+nb.value||0));S.sup[k]=v;r.value=v;save();srcBox();draw();});});
-  var pre=[['Typical GOP candidate',{R:92,D:6,O:45}],['Strong GOP year',{R:94,D:8,O:55}],['Typical Dem candidate',{R:7,D:92,O:52}]];
-  var pb=document.getElementById('wc-pre'); pb.innerHTML='<span class="pl">Generic:</span>'+pre.map(function(p,i){return '<button type="button" data-i="'+i+'">'+p[0]+' ('+p[1].R+' / '+p[1].D+' / '+p[1].O+')</button>';}).join('');
-  pb.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){S.sup=Object.assign({},pre[+b.dataset.i][1]);S.src=null;save();sliders();draw();});});
+  document.getElementById('wc-sl').innerHTML=KS.map(function(k){return '<div class="grp"><div class="gl"><i style="background:'+C[k]+'"></i>'+SH[k]+'<small id="wc-u'+k+'">Undecided '+fx(und(k))+'%</small></div><div>'
+    +['r','d'].map(function(sd){return '<div class="cand"><span>'+(sd==='r'?'Republican':'Democrat')+'</span><input type="range" id="wc-r'+k+sd+'" min="0" max="100" step="0.1" value="'+S.v[k][sd]+'" style="accent-color:'+(sd==='r'?C.R:C.D)+'" aria-label="'+SH[k]+' voting for the '+(sd==='r'?'Republican':'Democrat')+', percent"><input type="number" id="wc-n'+k+sd+'" min="0" max="100" step="0.1" value="'+S.v[k][sd]+'" aria-label="'+SH[k]+', '+(sd==='r'?'Republican':'Democrat')+' percent"></div>';}).join('')+'</div></div>';}).join('');
+  KS.forEach(function(k){['r','d'].forEach(function(sd){var r=document.getElementById('wc-r'+k+sd), nb=document.getElementById('wc-n'+k+sd);
+    var upd=function(v){v=setV(k,sd,v); r.value=v; nb.value=fx(v); document.getElementById('wc-u'+k).textContent='Undecided '+fx(und(k))+'%'; save(); srcBox(); draw();};
+    r.addEventListener('input',function(){upd(r.value);}); nb.addEventListener('change',function(){upd(nb.value);});});});
   var pp=document.getElementById('wc-ppre');
-  if(POLLS.length){pp.innerHTML='<span class="pl">From public polls:</span>'+POLLS.map(function(r,i){return '<button type="button" data-i="'+i+'" class="'+(S.src===i&&match(i)?'on':'')+'"><b>'+r.race+'</b> · '+r.rep.split(' ').slice(-1)[0]+' (R) '+fx(r.two.R)+' / '+fx(r.two.D)+' / '+fx(r.two.O)+'</button>';}).join('');
-    pp.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){var i=+b.dataset.i;S.sup={R:POLLS[i].two.R,D:POLLS[i].two.D,O:POLLS[i].two.O};S.src=i;save();sliders();draw();});});}
+  if(POLLS.length){pp.innerHTML='<span class="pl">From public polls:</span>'+POLLS.map(function(r,i){return '<button type="button" data-i="'+i+'"><b>'+r.race+'</b> · '+r.rep.split(' ').slice(-1)[0]+' vs '+r.dem.split(' ').slice(-1)[0]+'</button>';}).join('');
+    pp.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){var i=+b.dataset.i;S.v=JSON.parse(JSON.stringify(POLLS[i].avg));S.src=i;save();sliders();draw();});});}
   else pp.innerHTML='';
+  var pre=[['Typical GOP candidate',{R:{r:91,d:5},D:{r:5,d:91},O:{r:42,d:42}}],['Strong GOP year',{R:{r:94,d:4},D:{r:7,d:89},O:{r:48,d:38}}],['Strong Dem year',{R:{r:88,d:8},D:{r:3,d:94},O:{r:36,d:50}}]];
+  var pb=document.getElementById('wc-pre'); pb.innerHTML='<span class="pl">Generic:</span>'+pre.map(function(p,i){return '<button type="button" data-i="'+i+'">'+p[0]+'</button>';}).join('');
+  pb.querySelectorAll('button').forEach(function(b){b.addEventListener('click',function(){S.v=JSON.parse(JSON.stringify(pre[+b.dataset.i][1]));S.src=null;save();sliders();draw();});});
   srcBox();
   document.getElementById('wc-cus').innerHTML=KS.map(function(k){return '<label>'+SH[k]+' share of voters (%)<input type="number" min="0" max="100" step="0.5" id="wc-c'+k+'" value="'+S.custom[k]+'"></label>';}).join('');
   KS.forEach(function(k){var i=document.getElementById('wc-c'+k);i.addEventListener('input',function(){S.custom[k]=Math.max(0,+i.value||0);save();draw();});});
